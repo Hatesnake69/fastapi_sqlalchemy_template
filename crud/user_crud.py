@@ -75,14 +75,15 @@ class UserCRUD(BaseCRUD):
         dict_of_values = {
             getattr(self.model, attr): getattr(cmd, attr) for attr in attrs
         }
-        res = await self.session.execute(
+        res = (await self.session.execute(
             update(self.model)
             .where(self.model.id == cmd.id)
             .values(dict_of_values)
             .returning(self.model)
-        )
+        )).scalar()
         await self.session.commit()
-        return UserSchema.from_orm(res.fetchone())
+        print(res)
+        return UserSchema.from_orm(res)
 
     async def delete_user(
         self, cmd: DeleteUserSchema
@@ -91,6 +92,6 @@ class UserCRUD(BaseCRUD):
             await self.session.execute(
                 delete(self.model).where(self.model.id == cmd.id).returning(self.model)
             )
-        ).fetchone()
+        ).scalar()
         await self.session.commit()
-        return UserSchema.from_orm(res[0])
+        return UserSchema.from_orm(res)

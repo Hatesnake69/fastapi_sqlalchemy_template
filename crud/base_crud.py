@@ -75,21 +75,21 @@ class BaseCRUD(ABC):
         dict_of_values = {
             getattr(self.model, attr): getattr(cmd, attr) for attr in attrs
         }
-        res = await self.session.execute(
+        res = (await self.session.execute(
             update(self.model)
             .where(self.model.id == cmd.id)
             .values(dict_of_values)
             .returning(self.model)
-        )
+        )).scalar()
         await self.session.commit()
-        return ModelSchema.from_orm(res.fetchone())
+        return ModelSchema.from_orm(res)
 
     async def delete_model(self, cmd: DeleteModelSchema) -> ModelSchema:
         res = (
             await self.session.execute(
                 delete(self.model).where(self.model.id == cmd.id).returning(self.model)
             )
-        ).fetchone()
+        ).scalar()
 
         await self.session.commit()
         return ModelSchema.from_orm(res)
