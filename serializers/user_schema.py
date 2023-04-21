@@ -18,7 +18,7 @@ class UserSchema(ModelSchema):
     email: str
     password_hash: str
     created_at: datetime.datetime
-    updated_at: datetime.datetime
+    updated_at: datetime.datetime | None
 
 
 class CreateUserSchema(CreateModelSchema):
@@ -28,9 +28,9 @@ class CreateUserSchema(CreateModelSchema):
 
 
 class UpdateUserSchema(UpdateModelSchema):
-    username: str
-    email: str
-    password_hash: str
+    username: str | None
+    email: str | None
+    password_hash: str | None
 
 
 class GetUserSchema(GetModelSchema):
