@@ -16,9 +16,7 @@ from serializers import (
 class UserCRUD(BaseCRUD):
     model = UserModel
 
-    async def create_user(
-        self, cmd: CreateUserSchema
-    ) -> UserSchema:
+    async def create_user(self, cmd: CreateUserSchema) -> UserSchema:
         attrs = [attr for attr in dir(self.model) if not attr.startswith("_")]
         dict_of_values = {
             attr: getattr(cmd, attr)
@@ -26,20 +24,16 @@ class UserCRUD(BaseCRUD):
             if attr not in {"id", "metadata", "registry"}
             and getattr(cmd, attr, None) is not None
         }
-        new_category = self.model(**dict_of_values)
-        self.session.add(new_category)
+        new_instance = self.model(**dict_of_values)
+        self.session.add(new_instance)
         await self.session.commit()
-        return UserSchema.from_orm(new_category)
+        return UserSchema.from_orm(new_instance)
 
-    async def get_user(
-        self, cmd: GetUserSchema
-    ) -> UserSchema:
+    async def get_user(self, cmd: GetUserSchema) -> UserSchema:
         model_instance = await self.session.get(entity=self.model, ident=cmd.id)
         return UserSchema.from_orm(model_instance)
 
-    async def filter(
-        self, cmd: GetUsersByQuerySchema
-    ) -> list[UserSchema]:
+    async def filter(self, cmd: GetUsersByQuerySchema) -> list[UserSchema]:
         where_filter = []
         attrs = [
             attr
@@ -62,9 +56,7 @@ class UserCRUD(BaseCRUD):
         ]
         return res
 
-    async def update_user(
-        self, cmd: UpdateUserSchema
-    ) -> UserSchema:
+    async def update_user(self, cmd: UpdateUserSchema) -> UserSchema:
         attrs = [
             attr
             for attr in dir(self.model)
@@ -75,19 +67,19 @@ class UserCRUD(BaseCRUD):
         dict_of_values = {
             getattr(self.model, attr): getattr(cmd, attr) for attr in attrs
         }
-        res = (await self.session.execute(
-            update(self.model)
-            .where(self.model.id == cmd.id)
-            .values(dict_of_values)
-            .returning(self.model)
-        )).scalar()
+        res = (
+            await self.session.execute(
+                update(self.model)
+                .where(self.model.id == cmd.id)
+                .values(dict_of_values)
+                .returning(self.model)
+            )
+        ).scalar()
         await self.session.commit()
         print(res)
         return UserSchema.from_orm(res)
 
-    async def delete_user(
-        self, cmd: DeleteUserSchema
-    ) -> UserSchema:
+    async def delete_user(self, cmd: DeleteUserSchema) -> UserSchema:
         res = (
             await self.session.execute(
                 delete(self.model).where(self.model.id == cmd.id).returning(self.model)
